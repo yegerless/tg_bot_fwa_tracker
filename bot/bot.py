@@ -5,19 +5,20 @@ from aiogram.fsm.storage.memory import MemoryStorage
 
 from config import BOT_TOKEN
 # from middleware import 
-# from handlers import 
+from handlers.base_handlers import base_router
 
 
 
 async def main():
     # тут сделать логгирование при запуске бота
+    print('Бот запущен')
     
     bot = Bot(token=BOT_TOKEN)
     
     # Диспетчер, на который вешаются роутеры и мидлварь для логгирования
     dp = Dispatcher(storage=MemoryStorage())
     
-    # dp.include_routers()
+    dp.include_routers(base_router)
     
     # тут повесить мидлварь для логгирования
     
