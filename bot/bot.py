@@ -4,7 +4,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from loguru import logger
 
 from config import BOT_TOKEN
-# from middleware import 
+from middleware.middleware import LoguruMiddleware
 from handlers.base_handlers import base_router
 
 logger.add("logs.log", format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}", level="INFO", rotation="100 MB")
