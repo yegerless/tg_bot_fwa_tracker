@@ -10,10 +10,10 @@ base_router = Router()
 async def cmd_start(message: Message):
     ''' Тут пропишем докстрингу '''
     
-    # надо возвращать в качестве ответа описание бота и микроинструкцию по использованию 
-    # а не просто приветствие 
-    
     # Пока нет мидлвари с логгером будем дебажить бота принтами
-    print(message)
+    print('Trigger command start handler')
     
-    await message.answer(text='Этот бот категорически приветствует вас!')
+    with open('bot/static/start.md', 'r') as file:
+        answer_text = file.read()
+    
+    await message.answer(text=answer_text)
