@@ -20,8 +20,10 @@ class LoguruMiddleware(BaseMiddleware):
                        event: TelegramObject, data: Dict[str, Any]) -> Any:
         ''' Докстринга '''
         
+        if data.get('command'):
         # Логгирование момента получения сообщения и отправки ответа
-        logger.info(f'Message received in router {self.router_name}')
+            logger.info(f'Message received {data.get('command').command}')
+        else:
+            logger.info(f'Message received {data.get('event_update').message.text}')
         result = await handler(event, data)
-        logger.info(f'The handler from router {self.router_name} sent a response')
         return result
