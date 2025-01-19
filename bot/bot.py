@@ -7,6 +7,7 @@ from config import BOT_TOKEN
 from middleware.middleware import LoguruMiddleware
 from handlers.base_handlers import base_router
 from handlers.profile import profile_router
+from handlers.tracker import tracker_router
 
 logger.add("logs.log", format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}", level="INFO", rotation="100 MB")
 
@@ -23,7 +24,7 @@ async def main():
     # Диспетчер, на который вешаются роутеры и мидлварь для логгирования
     dp = Dispatcher(storage=MemoryStorage())
     
-    dp.include_routers(base_router, profile_router)
+    dp.include_routers(base_router, profile_router, tracker_router)
     
     # тут повесить мидлварь для логгирования
     

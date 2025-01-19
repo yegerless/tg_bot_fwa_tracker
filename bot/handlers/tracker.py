@@ -1,2 +1,10 @@
-# Здесь будут обработчики для всех команд, связанных с трекингом воды, каллорий и активности пользователя
-# А также метод, который будет возвращать прогресс по воде и калориям
+from aiogram import Router, F
+from aiogram.types import Message 
+from aiogram.filters import Command
+
+from storage import storage
+from middleware.middleware import LoguruMiddleware
+
+
+tracker_router = Router()
+tracker_router.message.middleware(LoguruMiddleware(router_name='profile_router'))
