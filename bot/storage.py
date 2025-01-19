@@ -31,3 +31,4 @@ storage = Storage()
 '''
 
 storage = {}
+storage[450646375] = {'height': 176, 'weight': 78.0, 'age': 25, 'activity': 45, 'city': 'f', 'water_goal': 3090, 'kalories_goal': 2500, 'logged_water': {'19-01-2025': {'21:31:40': 100}}, 'logged_calories': {}, 'burned_calories': {}}

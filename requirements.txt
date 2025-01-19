@@ -3,3 +3,4 @@ aiogram==3.17.0
 pydantic==2.10.5
 loguru==0.7.3
 aiohttp==3.11.11
+googletrans==4.0.2
