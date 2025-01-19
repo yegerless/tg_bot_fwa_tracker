@@ -4,7 +4,6 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from loguru import logger
 
 from config import BOT_TOKEN
-from middleware.middleware import LoguruMiddleware
 from handlers.base_handlers import base_router
 from handlers.profile import profile_router
 from handlers.tracker import tracker_router

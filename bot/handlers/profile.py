@@ -39,7 +39,7 @@ async def input_height(message: Message, state: FSMContext):
     user_id = message.from_user.id
     try:
         height =  int(message.text)
-    except ValueError:
+    except (ValueError, TypeError):
         await message.answer(text='Вы ввели некорректное значение роста. Введите ваш рост в см, округляя до целого (например: 70)')
         return None
 
@@ -55,7 +55,7 @@ async def input_weight(message: Message, state: FSMContext):
     user_id = message.from_user.id
     try:
         weight = float(message.text)
-    except ValueError:
+    except (ValueError, TypeError):
         await message.answer(text='Вы ввели некорректное значение веса. Введите ваш вес в кг с точность до 0.1 (например: 60.5)')
         return None
     storage[user_id]['weight'] = weight
@@ -70,7 +70,7 @@ async def input_age(message: Message, state: FSMContext):
     user_id = message.from_user.id
     try:
         age = int(message.text)
-    except ValueError:
+    except (ValueError, TypeError):
         await message.answer(text='Вы ввели некорректный возраст. Напишите, сколько вам полных лет? (например: 25)')
         return None
     storage[user_id]['age'] = age
@@ -85,7 +85,7 @@ async def input_activity(message: Message, state: FSMContext):
     user_id = message.from_user.id
     try:
         activity =  int(message.text)
-    except ValueError:
+    except (ValueError, TypeError):
         await message.answer(text='Вы ввели некорректное значение физической активности. Введите ваш уровень физической активности в минутах в день (например: 60)')
         return None
     storage[user_id]['activity'] = activity
@@ -122,12 +122,13 @@ async def input_kalories_goal(message: Message, state: FSMContext):
     if kalories_goal == 'Рассчитать':
         storage[user_id]['kalories_goal'] = get_kallories_norm(weight=storage[user_id]['weight'], 
                                         height=storage[user_id]['height'],
-                                        age=storage[user_id]['age'])
+                                        age=storage[user_id]['age'], 
+                                        activity=storage[user_id]['activity'])
     else:
         try:
             kalories_goal = int(kalories_goal)
             storage[user_id]['kalories_goal'] = kalories_goal
-        except ValueError:
+        except (ValueError, TypeError):
             await message.answer(text='Вы ввели некорректное значение цели по каллориям. Введите вашу цель по потребляемым калориям в день (например 2500) или напишите "Рассчитать", если хотите получить автоматический расчет нормы калорий для Вас.')
             return None
 

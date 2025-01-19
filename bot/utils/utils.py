@@ -31,8 +31,8 @@ def get_water_norm(weight: float, activity: int, city_temp: float | None = None)
     return water_norm
 
 
-def get_kallories_norm(weight: float, height: int, age: int) -> int:
+def get_kallories_norm(weight: float, height: int, age: int, activity: int = 0) -> int:
     ''' Докстринга '''
 
-    kallories_norm = int(10 * weight + 6.25 * height - 5 * age)
+    kallories_norm = int(10 * weight + 6.25 * height - 5 * age + 5 * activity)
     return kallories_norm
