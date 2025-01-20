@@ -7,7 +7,7 @@ from aiogram.fsm.state import StatesGroup, State
 
 from storage import storage
 from middleware.middleware import LoguruMiddleware
-from utils.utils import get_food_kalories
+from utils.utils import get_food_kalories, get_workout, get_additional_water
 
 
 tracker_router = Router()
@@ -77,19 +77,19 @@ async def log_food(message: Message, command: CommandObject, state: FSMContext):
     if not user_data:
         await message.answer(text='Пожалуйста создайте Ваш профиль при помощи команды /set_profile.')
         return None
-    
+
     food = command.args
     kalories = await get_food_kalories(food=food)
-    
+
     await state.update_data(food_kalories=kalories)
-    await message.answer(text=f'{food.title()} - {kalories} ккал на 100 г. Сколько грамм вы съели?')
+    await message.answer(text=f'{food.capitalize()} - {kalories} ккал на 100 г. Сколько грамм вы съели?')
     await state.set_state(LogFood.input_food_quantity)
 
 
 @tracker_router.message(LogFood.input_food_quantity, F.text)
 async def set_food_quantity(message: Message, state: FSMContext):
     ''' Докстринга '''
-    
+
     user_id = message.from_user.id
     user_data = storage.get(user_id)
     if not user_data:
@@ -121,4 +121,27 @@ async def log_workout(message: Message, command: CommandObject):
 
     user_id = message.from_user.id
     user_data = storage.get(user_id)
-    pass
+    if not user_data:
+        await message.answer(text='Пожалуйста создайте Ваш профиль при помощи команды /set_profile.')
+        return None
+
+    activity = ' '.join(command.args.split(' ')[:-1])
+    duration = int(command.args.split(' ')[-1])
+    weight = user_data.get('weight')
+
+    try:
+        burned_kalories = await get_workout(activity=activity, duration=duration, weight=weight)
+
+        # Логгирование соженных калорий будет с точностью до секунд
+        date, time = datetime.today().strftime('%d-%m-%Y %H:%M:%S').split()
+        if not user_data['burned_calories'].get(date):
+            user_data['burned_calories'][date] = {time: burned_kalories}
+        else:
+            user_data['burned_calories'][date][time] = burned_kalories
+    except IndexError:
+        await message.answer(text=f'Тип тренировки "{activity}" не найден, пожалуйста повторите команду с корректным типом тренировки.')
+        return None
+
+    additional_water = get_additional_water(duration)
+
+    await message.answer(text=f'{activity.capitalize()} {duration} минут - {burned_kalories} ккал. Дополнительно выпейте {additional_water} мл воды.')

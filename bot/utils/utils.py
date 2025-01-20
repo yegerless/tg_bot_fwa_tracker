@@ -3,10 +3,11 @@ from loguru import logger
 import asyncio
 from googletrans import Translator
 
-
 from config import OW_API_KEY, NINJAS_API_KEY, EDAMAM_APP_ID, EDAMAM_API_KEY
 
+
 logger.add("logs.log", format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}", level="INFO", rotation="100 MB")
+
 
 async def get_city_temp(city: str) -> float | None:
     ''' Докстринга '''
@@ -19,7 +20,7 @@ async def get_city_temp(city: str) -> float | None:
                 logger.info(f'Success request to OpenWeather API with city={city}')
                 return current_temp.get('main').get('temp')
             else:
-                logger.error(f'OpenWeather API return code {response.status}')
+                logger.error(f'OpenWeather API return code {response.status} and message {await response.text()}')
             return None
 
 
@@ -51,6 +52,7 @@ async def get_food_kalories(food: str) -> int:
     url = f'https://api.edamam.com/api/nutrition-data'
     params = {'app_id': EDAMAM_APP_ID, 'app_key': EDAMAM_API_KEY, 
               'nutrition-type': 'logging', 'ingr': food}
+
     async with aiohttp.ClientSession() as session:
         async with session.get(url, params=params) as response:
             if response.status == 200:
@@ -58,19 +60,37 @@ async def get_food_kalories(food: str) -> int:
                 logger.info(f'Success request to Edamam API with food={food}')
                 return kalories.get('calories')
             else:
-                logger.error(f'Edamam API return code {response.status}')
+                logger.error(f'Edamam API return code {response.status} and message {await response.text()}')
             return None
 
-'''
+
 async def get_workout(activity: str, duration: int, weight: int = 70) -> int:
-    base_url = f'https://api.api-ninjas.com/v1/caloriesburned?activity={activity}&weight={weight}&duration={duration}'
+    ''' Докстринга '''
+
+    async with Translator() as translator:
+        activity = await translator.translate(activity)
+        activity = activity.text
+
+    # Пересчет килограммов в фунты для запроса к API
+    weight = weight * 2.205
+
+    url = f'https://api.api-ninjas.com/v1/caloriesburned?activity={activity}&weight={weight}&duration={duration}'
     headers = {'X-Api-Key': NINJAS_API_KEY}
 
     async with aiohttp.ClientSession(headers=headers) as session:
         async with session.get(url) as response:
-            workout = await response.json()
-            # burned_calor/=ies = int(workout)
-            print(workout)
+            if response.status == 200:
+                workout = await response.json()
+                logger.info(f'Success request to Ninjas API with activity={activity}')
 
-    return workout#burned_calories
-'''
+                return workout[0].get('total_calories')
+            else:
+                logger.error(f'Ninjas API return code {response.status} and message {await response.text()}')
+            return None
+
+
+def get_additional_water(activity_duration: min) -> int:
+    ''' Докстринга '''
+    
+    additional_water = int(activity_duration / 30 * 200)
+    return additional_water
