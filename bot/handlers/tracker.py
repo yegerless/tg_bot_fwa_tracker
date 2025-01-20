@@ -5,6 +5,7 @@ from aiogram.filters import Command, CommandObject
 
 from storage import storage
 from middleware.middleware import LoguruMiddleware
+from utils.utils import get_food_kalories
 
 
 tracker_router = Router()
@@ -59,13 +60,16 @@ async def log_water(message: Message, command: CommandObject):
     await message.answer(text=f'До выполнения цели осталось {water_balance}')
 
 
-@tracker_router.message(Command('log_water'))
+@tracker_router.message(Command('log_food'))
 async def log_food(message: Message, command: CommandObject):
     ''' Докстринга '''
 
     user_id = message.from_user.id
     user_data = storage.get(user_id)
-    pass
+    food = command.args
+    print(food)
+    kalories = await get_food_kalories(food=food)
+    await message.answer(text=f'{kalories}')
 
 
 @tracker_router.message(Command('log_workout'))
