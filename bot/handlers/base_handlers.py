@@ -1,6 +1,7 @@
-from aiogram import Router
+from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.types import Message
+from aiogram.fsm.context import FSMContext
 
 from middleware.middleware import LoguruMiddleware
 
@@ -17,3 +18,12 @@ async def cmd_start(message: Message):
         answer_text = file.read()
         
     await message.answer(text=answer_text)
+
+
+@base_router.message(Command('cancel'))
+@base_router.message(F.text.lower() == 'отмена')
+async def cmd_cancel(message: Message, state: FSMContext):
+    ''' Докстринга '''
+
+    await message.answer(text='Ввод информации отменен.')
+    await state.clear()

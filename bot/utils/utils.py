@@ -58,7 +58,7 @@ async def get_food_kalories(food: str) -> int:
             if response.status == 200:
                 kalories = await response.json()
                 logger.info(f'Success request to Edamam API with food={food}')
-                return kalories.get('calories')
+                return int(kalories.get('calories'))
             else:
                 logger.error(f'Edamam API return code {response.status} and message {await response.text()}')
             return None
@@ -82,8 +82,7 @@ async def get_workout(activity: str, duration: int, weight: int = 70) -> int:
             if response.status == 200:
                 workout = await response.json()
                 logger.info(f'Success request to Ninjas API with activity={activity}')
-
-                return workout[0].get('total_calories')
+                return int(workout[0].get('total_calories'))
             else:
                 logger.error(f'Ninjas API return code {response.status} and message {await response.text()}')
             return None

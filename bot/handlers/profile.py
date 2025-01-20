@@ -32,22 +32,13 @@ async def cmd_set_profile(message: Message, state: FSMContext):
     await state.set_state(CreatingProfile.input_height)
 
 
-@profile_router.message(Command('cancel'))
-@profile_router.message(F.text.lower() == 'отмена')
-async def cmd_cancel(message: Message, state: FSMContext):
-    ''' Докстринга '''
-
-    await message.answer(text='Ввод информации отменен')
-    await state.clear()
-
-
 @profile_router.message(CreatingProfile.input_height, F.text)
 async def input_height(message: Message, state: FSMContext):
     ''' Докстринга '''
 
     user_id = message.from_user.id
     try:
-        height =  int(message.text)
+        height = int(message.text)
     except (ValueError, TypeError):
         await message.answer(text=('Вы ввели некорректное значение роста. '
                                    'Введите ваш рост в см, округляя до целого (например: 70)')
@@ -71,6 +62,7 @@ async def input_weight(message: Message, state: FSMContext):
                              'Введите ваш вес в кг с точность до 0.1 (например: 60.5)')
                              )
         return None
+
     storage[user_id]['weight'] = weight
     await message.answer(text=f'Напишите, сколько вам полных лет? (например: 25)')
     await state.set_state(CreatingProfile.input_age)
@@ -88,6 +80,7 @@ async def input_age(message: Message, state: FSMContext):
                                    'Напишите, сколько вам полных лет? (например: 25)')
                              )
         return None
+
     storage[user_id]['age'] = age
     await message.answer(text=f'Введите ваш уровень физической активности в минутах в день (например: 60)')
     await state.set_state(CreatingProfile.input_activity)
@@ -99,12 +92,13 @@ async def input_activity(message: Message, state: FSMContext):
 
     user_id = message.from_user.id
     try:
-        activity =  int(message.text)
+        activity = int(message.text)
     except (ValueError, TypeError):
         await message.answer(text=('Вы ввели некорректное значение физической активности. '
                                    'Введите ваш уровень физической активности в минутах в день (например: 60)')
                              )
         return None
+
     storage[user_id]['activity'] = activity
     await message.answer(text=f'Введите название города, где вы живете (например: Москва)')
     await state.set_state(CreatingProfile.input_city)

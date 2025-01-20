@@ -67,7 +67,7 @@ async def log_water(message: Message, command: CommandObject):
         water = int(command.args)
     except (ValueError, TypeError):
         await message.answer(text=('Вы ввели некорректное количество воды, '
-                                   'пожалуйста повторите команду /log_water <кол-во выпитой воды в мл>')
+                                   'пожалуйста повторите команду /log_water <кол-во выпитой воды в мл>.')
                             )
         return None
 
@@ -77,9 +77,15 @@ async def log_water(message: Message, command: CommandObject):
         user_data['logged_water'][date] = {time: water}
     else:
         user_data['logged_water'][date][time] = water
-
-    water_balance = user_data['water_goal'] - sum(user_data['logged_water'][date].values())
-    await message.answer(text=f'До выполнения цели осталось {water_balance}')
+    
+    total_water = sum(user_data['logged_water'][date].values())
+    if total_water >= user_data['water_goal']:
+        await message.answer(text=('Цель по воде выполнена!'
+                                   f'\nВсего выпито за день {total_water} мл.')
+                             )
+    else:
+        water_balance = user_data['water_goal'] - sum(user_data['logged_water'][date].values())
+        await message.answer(text=f'До выполнения цели осталось {water_balance} мл.')
 
 
 @tracker_router.message(StateFilter(None), Command('log_food'))
@@ -93,7 +99,16 @@ async def log_food(message: Message, command: CommandObject, state: FSMContext):
         return None
 
     food = command.args
-    kalories = await get_food_kalories(food=food)
+    try:
+        kalories = await get_food_kalories(food=food)
+        if kalories == 0:
+            raise ValueError
+    except (ValueError, TypeError):
+        await message.answer(text=('Введенный продукт не найден.'
+                                   '/nПожалуста введите название продукта еще раз '
+                                   'при помощи команды /log_food <название продукта>')
+                             )
+        return None
 
     await state.update_data(food_kalories=kalories)
     await message.answer(text=f'{food.capitalize()} - {kalories} ккал на 100 г. Сколько грамм вы съели?')
@@ -117,7 +132,7 @@ async def set_food_quantity(message: Message, state: FSMContext):
         return None
 
     user_food = await state.get_data()
-    total_kalories = quantity * user_food.get('food_kalories') / 100
+    total_kalories = int(quantity * user_food.get('food_kalories') / 100)
 
     # Логгирование еды будет с точностью до секунд
     date, time = datetime.today().strftime('%d-%m-%Y %H:%M:%S').split()
@@ -127,6 +142,7 @@ async def set_food_quantity(message: Message, state: FSMContext):
         user_data['logged_calories'][date][time] = total_kalories
 
     await message.answer(text=f'Записано {total_kalories} ккал.')
+    await state.clear()
 
 
 @tracker_router.message(Command('log_workout'))
@@ -152,7 +168,7 @@ async def log_workout(message: Message, command: CommandObject):
             user_data['burned_calories'][date] = {time: burned_kalories}
         else:
             user_data['burned_calories'][date][time] = burned_kalories
-    except IndexError:
+    except (IndexError, ValueError, TypeError):
         await message.answer(text=(f'Тип тренировки "{activity}" не найден, '
                                    'пожалуйста повторите команду с корректным типом тренировки.')
                             )
