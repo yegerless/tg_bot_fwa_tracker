@@ -67,7 +67,7 @@ async def log_water(message: Message, command: CommandObject):
         water = int(command.args)
     except (ValueError, TypeError):
         await message.answer(text=('Вы ввели некорректное количество воды, '
-                                   'пожалуйста повторите команду /log_water <кол-во выпитой воды в мл>')
+                                   'пожалуйста повторите команду /log_water <кол-во выпитой воды в мл>.')
                             )
         return None
 
@@ -77,9 +77,15 @@ async def log_water(message: Message, command: CommandObject):
         user_data['logged_water'][date] = {time: water}
     else:
         user_data['logged_water'][date][time] = water
-
-    water_balance = user_data['water_goal'] - sum(user_data['logged_water'][date].values())
-    await message.answer(text=f'До выполнения цели осталось {water_balance}')
+    
+    total_water = sum(user_data['logged_water'][date].values())
+    if total_water >= user_data['water_goal']:
+        await message.answer(text=('Цель по воде выполнена!'
+                                   f'\nВсего выпито за день {total_water} мл.')
+                             )
+    else:
+        water_balance = user_data['water_goal'] - sum(user_data['logged_water'][date].values())
+        await message.answer(text=f'До выполнения цели осталось {water_balance} мл.')
 
 
 @tracker_router.message(StateFilter(None), Command('log_food'))
