@@ -1,7 +1,9 @@
 from datetime import datetime
 from aiogram import Router, F
 from aiogram.types import Message 
-from aiogram.filters import Command, CommandObject
+from aiogram.filters import Command, CommandObject, StateFilter
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import StatesGroup, State
 
 from storage import storage
 from middleware.middleware import LoguruMiddleware
@@ -10,6 +12,12 @@ from utils.utils import get_food_kalories
 
 tracker_router = Router()
 tracker_router.message.middleware(LoguruMiddleware(router_name='profile_router'))
+
+
+
+class LogFood(StatesGroup):
+    input_food_quantity = State()
+
 
 
 @tracker_router.message(Command('check_progress'))
@@ -60,16 +68,51 @@ async def log_water(message: Message, command: CommandObject):
     await message.answer(text=f'До выполнения цели осталось {water_balance}')
 
 
-@tracker_router.message(Command('log_food'))
-async def log_food(message: Message, command: CommandObject):
+@tracker_router.message(StateFilter(None), Command('log_food'))
+async def log_food(message: Message, command: CommandObject, state: FSMContext):
     ''' Докстринга '''
 
     user_id = message.from_user.id
     user_data = storage.get(user_id)
+    if not user_data:
+        await message.answer(text='Пожалуйста создайте Ваш профиль при помощи команды /set_profile.')
+        return None
+    
     food = command.args
-    print(food)
     kalories = await get_food_kalories(food=food)
-    await message.answer(text=f'{kalories}')
+    
+    await state.update_data(food_kalories=kalories)
+    await message.answer(text=f'{food.title()} - {kalories} ккал на 100 г. Сколько грамм вы съели?')
+    await state.set_state(LogFood.input_food_quantity)
+
+
+@tracker_router.message(LogFood.input_food_quantity, F.text)
+async def set_food_quantity(message: Message, state: FSMContext):
+    ''' Докстринга '''
+    
+    user_id = message.from_user.id
+    user_data = storage.get(user_id)
+    if not user_data:
+        await message.answer(text='Пожалуйста создайте Ваш профиль при помощи команды /set_profile.')
+        return None
+
+    try:
+        quantity = int(message.text)
+    except (ValueError, TypeError):
+        await message.answer(text='Вы ввели некорректное количество еды. Введите сколько грамм вы съели?')
+        return None
+
+    user_food = await state.get_data()
+    total_kalories = quantity * user_food.get('food_kalories') / 100
+
+    # Логгирование еды будет с точностью до секунд
+    date, time = datetime.today().strftime('%d-%m-%Y %H:%M:%S').split()
+    if not user_data['logged_calories'].get(date):
+        user_data['logged_calories'][date] = {time: total_kalories}
+    else:
+        user_data['logged_calories'][date][time] = total_kalories
+
+    await message.answer(text=f'Записано {total_kalories} ккал.')
 
 
 @tracker_router.message(Command('log_workout'))
