@@ -25,5 +25,5 @@ async def cmd_start(message: Message):
 async def cmd_cancel(message: Message, state: FSMContext):
     ''' Докстринга '''
 
-    await message.answer(text='Ввод информации отменен')
+    await message.answer(text='Ввод информации отменен.')
     await state.clear()
