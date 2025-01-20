@@ -1,6 +1,8 @@
 import aiohttp
 from loguru import logger
 import asyncio
+from googletrans import Translator
+
 
 from config import OW_API_KEY, NINJAS_API_KEY, EDAMAM_APP_ID, EDAMAM_API_KEY
 
@@ -40,6 +42,12 @@ def get_kallories_norm(weight: float, height: int, age: int, activity: int = 0) 
 
 
 async def get_food_kalories(food: str) -> int:
+    ''' Докстринга '''
+
+    async with Translator() as translator:
+        food = await translator.translate(food)
+        food = food.text + ' 100g'
+
     url = f'https://api.edamam.com/api/nutrition-data'
     params = {'app_id': EDAMAM_APP_ID, 'app_key': EDAMAM_API_KEY, 
               'nutrition-type': 'logging', 'ingr': food}
@@ -47,10 +55,10 @@ async def get_food_kalories(food: str) -> int:
         async with session.get(url, params=params) as response:
             if response.status == 200:
                 kalories = await response.json()
-                logger.info(f'Success request to Nutritionix API with food={food}')
+                logger.info(f'Success request to Edamam API with food={food}')
                 return kalories.get('calories')
             else:
-                logger.error(f'Nutritionix API return code {response.status}')
+                logger.error(f'Edamam API return code {response.status}')
             return None
 
 '''
