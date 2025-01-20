@@ -99,7 +99,16 @@ async def log_food(message: Message, command: CommandObject, state: FSMContext):
         return None
 
     food = command.args
-    kalories = await get_food_kalories(food=food)
+    try:
+        kalories = await get_food_kalories(food=food)
+        if kalories == 0:
+            raise ValueError
+    except (ValueError, TypeError):
+        await message.answer(text=('Введенный продукт не найден.'
+                                   '/nПожалуста введите название продукта еще раз '
+                                   'при помощи команды /log_food <название продукта>')
+                             )
+        return None
 
     await state.update_data(food_kalories=kalories)
     await message.answer(text=f'{food.capitalize()} - {kalories} ккал на 100 г. Сколько грамм вы съели?')
@@ -133,6 +142,7 @@ async def set_food_quantity(message: Message, state: FSMContext):
         user_data['logged_calories'][date][time] = total_kalories
 
     await message.answer(text=f'Записано {total_kalories} ккал.')
+    await state.clear()
 
 
 @tracker_router.message(Command('log_workout'))

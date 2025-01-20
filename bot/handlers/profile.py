@@ -32,15 +32,6 @@ async def cmd_set_profile(message: Message, state: FSMContext):
     await state.set_state(CreatingProfile.input_height)
 
 
-@profile_router.message(Command('cancel'))
-@profile_router.message(F.text.lower() == 'отмена')
-async def cmd_cancel(message: Message, state: FSMContext):
-    ''' Докстринга '''
-
-    await message.answer(text='Ввод информации отменен')
-    await state.clear()
-
-
 @profile_router.message(CreatingProfile.input_height, F.text)
 async def input_height(message: Message, state: FSMContext):
     ''' Докстринга '''
