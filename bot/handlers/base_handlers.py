@@ -12,18 +12,26 @@ base_router.message.middleware(LoguruMiddleware(router_name='base_router'))
 
 @base_router.message(Command('start'))
 async def cmd_start(message: Message):
-    ''' Тут пропишем докстрингу '''
+    '''
+        Обработчик команды '/start'.
+        Отправляет информационное сообщение про бота и список его команд.
+    '''
 
+    # Стартовое сообщение больше, поэтому лежит в отдельном файле
     with open('bot/static/start.md', 'r') as file:
         answer_text = file.read()
-        
+
     await message.answer(text=answer_text)
 
 
 @base_router.message(Command('cancel'))
 @base_router.message(F.text.lower() == 'отмена')
 async def cmd_cancel(message: Message, state: FSMContext):
-    ''' Докстринга '''
+    '''
+        Обработчик команды '/cancel'.
+        Отменяет заполнение формы, сбрасывает текущее состояние 
+            активного конечного автомата.
+    '''
 
     await message.answer(text='Ввод информации отменен.')
     await state.clear()
