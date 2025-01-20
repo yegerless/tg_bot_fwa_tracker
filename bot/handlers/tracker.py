@@ -26,17 +26,29 @@ async def check_progress(message: Message):
 
     user_id = message.from_user.id
     user_data = storage.get(user_id)
+    date = datetime.today().strftime('%d-%m-%Y')
     if user_data:
-        await message.answer(text=f'''Прогресс: 
-                                Вода: 
-                                    - Выпито: {0} мл из {user_data.get('water_goal')} мл.
-                                    - Осталось: {user_data.get('water_goal') - 0} мл.
-                                
-                                Калории:
-                                    - Потреблено: {0} ккал из {user_data.get('water_goal')} ккал.
-                                    - Сожжено: {0} ккал.
-                                    - Осталось: {user_data.get('kalories_goal') - 0} ккал.
-                            ''')
+        logged_water = user_data.get('logged_water').get(date, 0)
+        logged_kalories = user_data.get('logged_calories').get(date, 0)
+        burned_calories = user_data.get('burned_calories').get(date, 0)
+        
+        if logged_water:
+            logged_water = sum(logged_water.values())
+        if logged_kalories:
+            logged_kalories = sum(logged_kalories.values())
+        if burned_calories:
+            burned_calories = sum(burned_calories.values())
+        
+        await message.answer(
+            text=('Прогресс:'
+                  '\n  Вода:'
+                  f'\n    - Выпито: {logged_water} мл из {user_data.get('water_goal')} мл.'
+                  f'\n    - Осталось: {user_data.get('water_goal') - logged_water} мл.'
+                  '\n  Калории:'
+                  f'\n    - Потреблено: {logged_kalories} ккал из {user_data.get('kalories_goal')} ккал.'
+                  f'\n    - Сожжено: {burned_calories} ккал.'
+                  f'\n    - Осталось: {user_data.get('kalories_goal') - logged_kalories} ккал.')
+            )
     else:
         await message.answer(text='Пожалуйста создайте Ваш профиль при помощи команды /set_profile.')
 
@@ -54,7 +66,9 @@ async def log_water(message: Message, command: CommandObject):
     try:
         water = int(command.args)
     except (ValueError, TypeError):
-        await message.answer(text='Вы ввели некорректное количество воды, пожалуйста повторите команду /log_water <кол-во выпитой воды в мл>')
+        await message.answer(text=('Вы ввели некорректное количество воды, '
+                                   'пожалуйста повторите команду /log_water <кол-во выпитой воды в мл>')
+                            )
         return None
 
     # Логгирование воды будет с точностью до секунд
@@ -139,9 +153,13 @@ async def log_workout(message: Message, command: CommandObject):
         else:
             user_data['burned_calories'][date][time] = burned_kalories
     except IndexError:
-        await message.answer(text=f'Тип тренировки "{activity}" не найден, пожалуйста повторите команду с корректным типом тренировки.')
+        await message.answer(text=(f'Тип тренировки "{activity}" не найден, '
+                                   'пожалуйста повторите команду с корректным типом тренировки.')
+                            )
         return None
 
     additional_water = get_additional_water(duration)
 
-    await message.answer(text=f'{activity.capitalize()} {duration} минут - {burned_kalories} ккал. Дополнительно выпейте {additional_water} мл воды.')
+    await message.answer(text=(f'{activity.capitalize()} {duration} минут - {burned_kalories} ккал. '
+                               f'Дополнительно выпейте {additional_water} мл воды.')
+                        )
