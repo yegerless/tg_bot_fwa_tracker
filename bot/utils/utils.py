@@ -83,7 +83,7 @@ async def get_workout(activity: str, duration: int, weight: int = 70) -> int:
                 workout = await response.json()
                 logger.info(f'Success request to Ninjas API with activity={activity}')
 
-                return workout[0].get('total_calories')
+                return int(workout[0].get('total_calories'))
             else:
                 logger.error(f'Ninjas API return code {response.status} and message {await response.text()}')
             return None

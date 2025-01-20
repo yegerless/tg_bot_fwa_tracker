@@ -132,7 +132,7 @@ async def set_food_quantity(message: Message, state: FSMContext):
         return None
 
     user_food = await state.get_data()
-    total_kalories = quantity * user_food.get('food_kalories') / 100
+    total_kalories = int(quantity * user_food.get('food_kalories') / 100)
 
     # Логгирование еды будет с точностью до секунд
     date, time = datetime.today().strftime('%d-%m-%Y %H:%M:%S').split()
@@ -168,7 +168,7 @@ async def log_workout(message: Message, command: CommandObject):
             user_data['burned_calories'][date] = {time: burned_kalories}
         else:
             user_data['burned_calories'][date][time] = burned_kalories
-    except IndexError:
+    except (IndexError, ValueError, TypeError):
         await message.answer(text=(f'Тип тренировки "{activity}" не найден, '
                                    'пожалуйста повторите команду с корректным типом тренировки.')
                             )
