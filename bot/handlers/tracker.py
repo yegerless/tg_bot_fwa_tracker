@@ -54,11 +54,11 @@ async def check_progress(message: Message):
             text=('Прогресс:'
                   '\n  Вода:'
                   f'\n    - Выпито: {logged_water} мл из {user_data.get('water_goal')} мл.'
-                  f'\n    - Осталось: {user_data.get('water_goal') - logged_water} мл.'
+                  f'\n    - Осталось: {max(user_data.get('water_goal') - logged_water, 0)} мл.'
                   '\n  Калории:'
                   f'\n    - Потреблено: {logged_calories} ккал из {user_data.get('calories_goal')} ккал.'
                   f'\n    - Сожжено: {burned_calories} ккал.'
-                  f'\n    - Осталось: {user_data.get('calories_goal') - logged_calories} ккал.')
+                  f'\n    - Осталось: {max(user_data.get('calories_goal') - logged_calories, 0)} ккал.')
             )
     else:
         # Если профиля пользователя нет в хранилище, то предлагаем создать профиль
