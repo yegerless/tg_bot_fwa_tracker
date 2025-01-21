@@ -7,7 +7,7 @@ from aiogram.fsm.state import StatesGroup, State
 
 from storage import storage
 from middleware.middleware import LoguruMiddleware
-from utils.utils import get_food_kalories, get_workout, get_additional_water
+from utils.utils import get_food_calories, get_workout, get_additional_water
 
 
 # Содание роутера и прикрепление к нему логгера
@@ -38,14 +38,14 @@ async def check_progress(message: Message):
     if user_data:
         # Только сегодняшние данные иначе ноль
         logged_water = user_data.get('logged_water').get(date, 0)
-        logged_kalories = user_data.get('logged_calories').get(date, 0)
+        logged_calories = user_data.get('logged_calories').get(date, 0)
         burned_calories = user_data.get('burned_calories').get(date, 0)
 
         # Только если данные были введены сегодня хотя бы раз
         if logged_water:
             logged_water = sum(logged_water.values())
-        if logged_kalories:
-            logged_kalories = sum(logged_kalories.values())
+        if logged_calories:
+            logged_calories = sum(logged_calories.values())
         if burned_calories:
             burned_calories = sum(burned_calories.values())
 
@@ -56,9 +56,9 @@ async def check_progress(message: Message):
                   f'\n    - Выпито: {logged_water} мл из {user_data.get('water_goal')} мл.'
                   f'\n    - Осталось: {user_data.get('water_goal') - logged_water} мл.'
                   '\n  Калории:'
-                  f'\n    - Потреблено: {logged_kalories} ккал из {user_data.get('kalories_goal')} ккал.'
+                  f'\n    - Потреблено: {logged_calories} ккал из {user_data.get('calories_goal')} ккал.'
                   f'\n    - Сожжено: {burned_calories} ккал.'
-                  f'\n    - Осталось: {user_data.get('kalories_goal') - logged_kalories} ккал.')
+                  f'\n    - Осталось: {user_data.get('calories_goal') - logged_calories} ккал.')
             )
     else:
         # Если профиля пользователя нет в хранилище, то предлагаем создать профиль
@@ -136,8 +136,8 @@ async def log_food(message: Message, command: CommandObject, state: FSMContext):
     # Получение калорийности из Edamam API
     food = command.args
     try:
-        kalories = await get_food_kalories(food=food)
-        if kalories == 0:
+        calories = await get_food_calories(food=food)
+        if calories == 0:
             raise ValueError
     except (ValueError, TypeError):
         await message.answer(text=('Введенный продукт не найден.'
@@ -147,9 +147,9 @@ async def log_food(message: Message, command: CommandObject, state: FSMContext):
         return None
 
     # Фиксация калорийности в хранилище автомата
-    await state.update_data(food_kalories=kalories)
+    await state.update_data(food_calories=calories)
     # Запрос кол-ва еды
-    await message.answer(text=f'{food.capitalize()} - {kalories} ккал на 100 г. Сколько грамм вы съели?')
+    await message.answer(text=f'{food.capitalize()} - {calories} ккал на 100 г. Сколько грамм вы съели?')
     await state.set_state(LogFood.input_food_quantity)
 
 
@@ -177,16 +177,16 @@ async def set_food_quantity(message: Message, state: FSMContext):
     # Получение калорийности продукта из хранилища конечного автомата
     user_food = await state.get_data()
     # Расчет кол-ва полученных калорий
-    total_kalories = int(quantity * user_food.get('food_kalories') / 100)
+    total_calories = int(quantity * user_food.get('food_calories') / 100)
 
     # Логгирование полученных калорий по дате и времени
     date, time = datetime.today().strftime('%d-%m-%Y %H:%M:%S').split()
     if not user_data['logged_calories'].get(date):
-        user_data['logged_calories'][date] = {time: total_kalories}
+        user_data['logged_calories'][date] = {time: total_calories}
     else:
-        user_data['logged_calories'][date][time] = total_kalories
+        user_data['logged_calories'][date][time] = total_calories
 
-    await message.answer(text=f'Записано {total_kalories} ккал.')
+    await message.answer(text=f'Записано {total_calories} ккал.')
     await state.clear()
 
 
@@ -218,14 +218,14 @@ async def log_workout(message: Message, command: CommandObject):
 
     # Получение кол-ва сожженных калорий и сохранение в хранилище или ошибка и повторный запрос
     try:
-        burned_kalories = await get_workout(activity=activity, duration=duration, weight=weight)
+        burned_calories = await get_workout(activity=activity, duration=duration, weight=weight)
 
         # Логгирование соженных калорий по дате и времени
         date, time = datetime.today().strftime('%d-%m-%Y %H:%M:%S').split()
         if not user_data['burned_calories'].get(date):
-            user_data['burned_calories'][date] = {time: burned_kalories}
+            user_data['burned_calories'][date] = {time: burned_calories}
         else:
-            user_data['burned_calories'][date][time] = burned_kalories
+            user_data['burned_calories'][date][time] = burned_calories
     except (IndexError, ValueError, TypeError):
         await message.answer(text=(f'Тип тренировки "{activity}" не найден, '
                                    'пожалуйста повторите команду с корректным типом тренировки.')
@@ -235,6 +235,6 @@ async def log_workout(message: Message, command: CommandObject):
     # Расчет дополнительного кол-ва воды по данным об активности
     additional_water = get_additional_water(duration)
     
-    await message.answer(text=(f'{activity.capitalize()} {duration} минут - {burned_kalories} ккал. '
+    await message.answer(text=(f'{activity.capitalize()} {duration} минут - {burned_calories} ккал. '
                                f'Дополнительно выпейте {additional_water} мл воды.')
                         )

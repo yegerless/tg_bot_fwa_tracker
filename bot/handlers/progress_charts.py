@@ -5,7 +5,7 @@ from aiogram.filters import Command
 
 from storage import storage
 from middleware.middleware import LoguruMiddleware
-from utils.charts import get_water_chart, get_kalories_chart
+from utils.charts import get_water_chart, get_calories_chart
 
 
 # Содание роутера и прикрепление к нему логгера
@@ -71,24 +71,24 @@ async def calories_chart(message: Message):
     if user_data:
         # Извлечение из хранилища данных по калориям за последние 7 дней, 
         # с расчетом суммы по дням
-        logged_kalories = {}
-        burned_kalories = {}
+        logged_calories = {}
+        burned_calories = {}
         for date in dates:
             if date in user_data.get('logged_calories'):
-                logged_kalories[date] = sum(user_data.get('logged_calories').get(date).values())
+                logged_calories[date] = sum(user_data.get('logged_calories').get(date).values())
             else:
-                logged_kalories[date] = 0
+                logged_calories[date] = 0
             if date in user_data.get('burned_calories'):
-                burned_kalories[date] = sum(user_data.get('burned_calories').get(date).values())
+                burned_calories[date] = sum(user_data.get('burned_calories').get(date).values())
             else:
-                burned_kalories[date] = 0
+                burned_calories[date] = 0
     else:
         # Если профиля пользователя нет в хранилище, то предлагаем создать профиль
         await message.answer(text='Пожалуйста создайте Ваш профиль при помощи команды /set_profile.')
         return None
 
     # Создание графика и отправка картинки пользователю
-    chart = get_kalories_chart(logged_kalories, burned_kalories, user_data.get('kalories_goal'))
+    chart = get_calories_chart(logged_calories, burned_calories, user_data.get('calories_goal'))
     chart = await message.answer_photo(
-        BufferedInputFile(chart, filename='kalories_chart.png'),
+        BufferedInputFile(chart, filename='calories_chart.png'),
         caption='*если значение за день 0, значит вы не сохраняли данные в этот день.')
