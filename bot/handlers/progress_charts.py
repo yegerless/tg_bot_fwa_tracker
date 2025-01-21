@@ -15,16 +15,23 @@ charts_router.message.middleware(LoguruMiddleware(router_name='charts_router'))
 
 @charts_router.message(Command('water_chart'))
 async def water_chart(message: Message):
-    ''' Докстринга '''
+    '''
+        Обработчик команды '/water_chart'.
+        Отправляет пользователю изображение с графиком
+            выпитой им воды за последние 7 дней. 
+    '''
 
+    # Получение списка дат последних 7 дней
     dates = []
     for i in range(0, 7):
         dates.append((datetime.today() - timedelta(days=i)).strftime('%d-%m-%Y'))
 
+    # Получение данных пользователя по id
     user_id = message.from_user.id
     user_data = storage.get(user_id)
     if user_data:
-        # Данные по воде за последние 7 дней, сразу рассчитывает сумму по дням
+        # Извлечение из хранилища данных по воде за последние 7 дней, 
+        # с расчетом суммы по дням
         logged_water = {}
         for date in dates:
             if date in user_data.get('logged_water'):
@@ -36,30 +43,34 @@ async def water_chart(message: Message):
         await message.answer(text='Пожалуйста создайте Ваш профиль при помощи команды /set_profile.')
         return None
 
-    # Только если данные есть данные по воде хотя бы за один день
-    if logged_water:
-        chart = get_water_chart(logged_water, user_data.get('water_goal'))
-        chart = await message.answer_photo(
-            BufferedInputFile(chart, filename='water_chart.png'),
-            caption='График потребления воды',
-            show_caption_above_media=True
-        )
-    else:
-        await message.answer(text='Последние 7 дней вы не сохраняли данные о количестве выпитой воды.')
+    # Создание графика и отправка картинки пользователю
+    chart = get_water_chart(logged_water, user_data.get('water_goal'))
+    chart = await message.answer_photo(
+        BufferedInputFile(chart, filename='water_chart.png'),
+        caption='*если значение за день 0, значит вы не сохраняли данные в этот день.',
+    )
 
 
 @charts_router.message(Command('calories_chart'))
 async def calories_chart(message: Message):
-    ''' Докстринга '''
+    '''
+        Обработчик команды '/calories_chart'
+        Отправляет пользователю изображение с графиком
+            полученных из еды и сожженных физической 
+            активностью калорий за последние 7 дней. 
+    '''
 
+    # Получение списка дат последних 7 дней
     dates = []
     for i in range(0, 7):
         dates.append((datetime.today() - timedelta(days=i)).strftime('%d-%m-%Y'))
 
+    # Получение данных пользователя по id
     user_id = message.from_user.id
     user_data = storage.get(user_id)
     if user_data:
-        # Данные по воде за последние 7 дней, сразу рассчитывает сумму по дням
+        # Извлечение из хранилища данных по калориям за последние 7 дней, 
+        # с расчетом суммы по дням
         logged_kalories = {}
         burned_kalories = {}
         for date in dates:
@@ -76,15 +87,8 @@ async def calories_chart(message: Message):
         await message.answer(text='Пожалуйста создайте Ваш профиль при помощи команды /set_profile.')
         return None
 
-    # Только если данные есть данные по воде хотя бы за один день
-    if logged_kalories or burned_kalories:
-        chart = get_kalories_chart(logged_kalories, burned_kalories, user_data.get('kalories_goal'))
-        chart = await message.answer_photo(
-            BufferedInputFile(chart, filename='kalories_chart.png'),
-            caption='График полученных калорий',
-            show_caption_above_media=True
-        )
-    else:
-        await message.answer(text=('Последние 7 дней вы не сохраняли данные о '
-                             'съеденных продуктах.')
-                             )
+    # Создание графика и отправка картинки пользователю
+    chart = get_kalories_chart(logged_kalories, burned_kalories, user_data.get('kalories_goal'))
+    chart = await message.answer_photo(
+        BufferedInputFile(chart, filename='kalories_chart.png'),
+        caption='*если значение за день 0, значит вы не сохраняли данные в этот день.')
