@@ -7,6 +7,7 @@ from config import BOT_TOKEN
 from handlers.base_handlers import base_router
 from handlers.profile import profile_router
 from handlers.tracker import tracker_router
+from handlers.progress_charts import charts_router
 
 
 # Добавление обработчика с сохранением логов бота в файл с ротацией по размеру файла
@@ -26,7 +27,8 @@ async def main():
 
     # Диспетчер, на который вешаются роутеры
     dp = Dispatcher(storage=MemoryStorage())
-    dp.include_routers(base_router, profile_router, tracker_router)
+    dp.include_routers(base_router, profile_router, 
+                       tracker_router, charts_router)
 
     # Пропуск всех накопленных входящих сообщений при запуске бота
     await bot.delete_webhook(drop_pending_updates=True)

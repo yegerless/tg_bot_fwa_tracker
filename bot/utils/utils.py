@@ -62,9 +62,9 @@ def get_kallories_norm(weight: float, height: int, age: int, activity: int = 0) 
     return kallories_norm
 
 
-async def get_food_kalories(food: str) -> int:
+async def get_food_calories(food: str) -> int:
     '''
-        Функция get_food_kalories - принимает название продукта и возвращает 
+        Функция get_food_calories - принимает название продукта и возвращает 
             его калорийность на 100 г по данным из Edamam API.
         Аргументы:
             food (str) - название продукта.
@@ -82,9 +82,9 @@ async def get_food_kalories(food: str) -> int:
     async with aiohttp.ClientSession() as session:
         async with session.get(url, params=params) as response:
             if response.status == 200:
-                kalories = await response.json()
+                calories = await response.json()
                 logger.info(f'Success request to Edamam API with food={food}')
-                return int(kalories.get('calories'))
+                return int(calories.get('calories'))
             else:
                 logger.error(f'Edamam API return code {response.status} and message {await response.text()}')
             return None

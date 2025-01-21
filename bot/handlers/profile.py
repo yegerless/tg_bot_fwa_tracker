@@ -25,7 +25,7 @@ class CreatingProfile(StatesGroup):
     input_age = State()
     input_activity = State()
     input_city = State()
-    input_kalories_goal = State()
+    input_calories_goal = State()
 
 
 @profile_router.message(StateFilter(None), Command('set_profile'))
@@ -173,7 +173,7 @@ async def input_activity(message: Message, state: FSMContext):
             в городе. Если значение температуры не удалось получить, то расчитывает
             норму воды для пользователя по формуле без учета температуры, если 
             удалось - то с учетом.
-        Устанавливает состояние input_kalories_goal и запрашивает у пользователя
+        Устанавливает состояние input_calories_goal и запрашивает у пользователя
             его цело по потребляемым калориям в день.
     '''
 
@@ -199,13 +199,13 @@ async def input_activity(message: Message, state: FSMContext):
     await message.answer(text=('Введите вашу цель по потребляемым калориям в день (например 2500) или напишите '
                                '"Рассчитать", если хотите получить автоматический расчет нормы калорий для Вас.')
                          )
-    await state.set_state(CreatingProfile.input_kalories_goal)
+    await state.set_state(CreatingProfile.input_calories_goal)
 
 
-@profile_router.message(CreatingProfile.input_kalories_goal, F.text)
-async def input_kalories_goal(message: Message, state: FSMContext):
+@profile_router.message(CreatingProfile.input_calories_goal, F.text)
+async def input_calories_goal(message: Message, state: FSMContext):
     '''
-        Обработчик состояния конечного автомата input_kalories_goal.
+        Обработчик состояния конечного автомата input_calories_goal.
         Принимает значение цели пользователя по калориям или сообщение
             'Рассчитать'. Во втором случае расчитывает цель по калориям
             для пользователя автоматически (по формуле).
@@ -215,11 +215,11 @@ async def input_kalories_goal(message: Message, state: FSMContext):
 
     user_id = message.from_user.id
     # Получение цели по калориям
-    kalories_goal =  message.text
+    calories_goal =  message.text
     # Проверка полученного значения
-    if kalories_goal == 'Рассчитать':
+    if calories_goal == 'Рассчитать':
         # Расчет и сохранение цели по формуле
-        storage[user_id]['kalories_goal'] = get_kallories_norm(weight=storage[user_id]['weight'], 
+        storage[user_id]['calories_goal'] = get_kallories_norm(weight=storage[user_id]['weight'], 
                                         height=storage[user_id]['height'],
                                         age=storage[user_id]['age'], 
                                         activity=storage[user_id]['activity'])
@@ -228,8 +228,8 @@ async def input_kalories_goal(message: Message, state: FSMContext):
         # валидация полученного значения и запрос заново при провале
         # или сохранение при успехе
         try:
-            kalories_goal = int(kalories_goal)
-            storage[user_id]['kalories_goal'] = kalories_goal
+            calories_goal = int(calories_goal)
+            storage[user_id]['calories_goal'] = calories_goal
         except (ValueError, TypeError):
             await message.answer(text=('Вы ввели некорректное значение цели по каллориям. '
                                        'Введите вашу цель по потребляемым калориям в день '
@@ -246,6 +246,6 @@ async def input_kalories_goal(message: Message, state: FSMContext):
     # Информационное сообщение об успешном создании профиля
     await message.answer(text=('Ваш профиль успешно создан. Цель по воде - '
                                f'{storage[user_id]['water_goal']} мл в день. '
-                               f'Цель по калориям - {storage[user_id]['kalories_goal']} ккал/день')
+                               f'Цель по калориям - {storage[user_id]['calories_goal']} ккал/день')
                          )
     await state.clear()
