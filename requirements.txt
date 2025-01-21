@@ -4,3 +4,5 @@ pydantic==2.10.5
 loguru==0.7.3
 aiohttp==3.11.11
 googletrans==4.0.2
+plotly==5.24.1
+kaleido==0.2.1
